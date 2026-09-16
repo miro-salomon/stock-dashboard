@@ -1,1 +1,205 @@
-setup
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Stock Predictor Dashboard</title>
+<style>
+:root {
+  color-scheme: light;
+  --page-plane:     #f9f9f7;
+  --surface-1:      #fcfcfb;
+  --text-primary:   #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted:     #898781;
+  --gridline:       #e1e0d9;
+  --baseline:       #c3c2b7;
+  --series-1:       #2a78d6;
+  --series-2:       #eb6834;
+  --good:           #006300;
+  --bad:            #d03b3b;
+  --good-bg:        #e3f3e3;
+  --bad-bg:         #fbe6e5;
+  --border:         rgba(11,11,11,0.10);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --page-plane:     #0d0d0d;
+    --surface-1:      #1a1a19;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #898781;
+    --gridline:       #2c2c2a;
+    --baseline:       #383835;
+    --series-1:       #3987e5;
+    --series-2:       #d95926;
+    --good:           #0ca30c;
+    --bad:            #e66767;
+    --good-bg:        #163019;
+    --bad-bg:         #331a19;
+    --border:         rgba(255,255,255,0.10);
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--page-plane); color: var(--text-primary);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  padding: 24px 16px 48px;
+}
+.wrap { max-width: 1180px; margin: 0 auto; }
+header { margin-bottom: 20px; }
+header h1 { font-size: 1.4rem; margin: 0 0 4px; }
+header p { margin: 0; color: var(--text-secondary); font-size: 0.9rem; }
+.market-section {
+  background: var(--surface-1); border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px; margin-bottom: 24px;
+}
+.market-section h2 { margin: 0 0 16px; font-size: 1.15rem; }
+.stat-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 18px;
+}
+@media (max-width: 800px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .stat-grid { grid-template-columns: 1fr; } }
+.stat-tile {
+  background: var(--page-plane); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 14px;
+}
+.stat-label { font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 6px; }
+.stat-value { font-size: 1.25rem; font-weight: 600; }
+.stat-delta { font-size: 0.78rem; margin-top: 4px; }
+.delta-good { color: var(--good); }
+.delta-bad { color: var(--bad); }
+.delta-neutral { color: var(--text-muted); }
+.chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px; }
+@media (max-width: 800px) { .chart-grid { grid-template-columns: 1fr; } }
+.chart-card { position: relative; }
+.chart-card h4 { margin: 0 0 6px; font-size: 0.85rem; color: var(--text-secondary); font-weight: 600; }
+.gridline { stroke: var(--gridline); stroke-width: 1; }
+.baseline { stroke: var(--baseline); stroke-width: 1.5; }
+.axis-label { fill: var(--text-muted); font-size: 10px; }
+.end-label { fill: var(--text-secondary); font-size: 11px; font-weight: 600; }
+.crosshair { stroke: var(--text-muted); stroke-width: 1; opacity: 0; pointer-events: none; }
+.chart-tooltip {
+  position: absolute; top: 8px; right: 8px; background: var(--surface-1);
+  border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px;
+  font-size: 11px; color: var(--text-primary); pointer-events: none;
+}
+.tables-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 800px) { .tables-grid { grid-template-columns: 1fr; } }
+.table-card h4 { margin: 0 0 8px; font-size: 0.85rem; color: var(--text-secondary); font-weight: 600; }
+.table-scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--gridline); white-space: nowrap; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.badge { padding: 2px 8px; border-radius: 999px; font-size: 0.78rem; }
+.badge-good { background: var(--good-bg); color: var(--good); }
+.badge-bad { background: var(--bad-bg); color: var(--bad); }
+.empty { color: var(--text-muted); font-size: 0.85rem; }
+.miss-section { margin-top: 18px; }
+.miss-diagnosis { display: flex; flex-direction: column; gap: 10px; }
+.miss-item {
+  background: var(--page-plane); border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 14px;
+}
+.miss-head { font-weight: 600; font-size: 0.88rem; margin-bottom: 4px; }
+.miss-return { font-weight: 400; color: var(--bad); margin-left: 6px; }
+.miss-sector { font-weight: 400; color: var(--text-muted); font-size: 0.8rem; }
+.miss-reasons { margin: 0; padding-left: 18px; font-size: 0.82rem; color: var(--text-secondary); }
+.miss-reasons li { margin-bottom: 3px; }
+.miss-news-label { font-size: 0.76rem; color: var(--text-muted); margin: 8px 0 2px; }
+.miss-news { margin: 0; padding-left: 18px; font-size: 0.8rem; }
+.miss-news li { margin-bottom: 3px; }
+.miss-news a { color: var(--series-1); text-decoration: none; }
+.miss-news a:hover { text-decoration: underline; }
+.news-date { color: var(--text-muted); font-size: 0.74rem; }
+footer { color: var(--text-muted); font-size: 0.78rem; margin-top: 8px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Stock Predictor Dashboard</h1>
+    <p>生成日時: 2026-09-16 22:26 ／ 投資助言ではありません。公開の値動きデータのみに基づく参考情報です。</p>
+  </header>
+  
+    <section class="market-section">
+      <h2>日本株</h2>
+      <div class="stat-grid"><div class="stat-tile"><div class="stat-label">通算的中率</div><div class="stat-value">43.3%</div><div class="stat-delta delta-neutral"> 直近10回 43.3%</div></div><div class="stat-tile"><div class="stat-label">通算 平均超過リターン(対ベンチマーク)</div><div class="stat-value">-0.1%</div></div><div class="stat-tile"><div class="stat-label">現在の予測手法</div><div class="stat-value">ルールベース</div><div class="stat-delta delta-neutral"> コールドスタート中</div></div><div class="stat-tile"><div class="stat-label">答え合わせ済みの回数</div><div class="stat-value">3</div></div></div>
+      <div class="chart-grid"><div class="chart-card"><h4>的中率の推移</h4><svg class="linechart" data-chart-id="jp-hit" viewBox="0 0 520 190" width="100%" height="190" role="img" aria-label="推移グラフ"><line x1="46" y1="164.0" x2="476" y2="164.0" class="gridline" /><text x="40" y="167.0" class="axis-label" text-anchor="end">0.0%</text><line x1="46" y1="90.0" x2="476" y2="90.0" class="gridline" /><text x="40" y="93.0" class="axis-label" text-anchor="end">50.0%</text><line x1="46" y1="16.0" x2="476" y2="16.0" class="gridline" /><text x="40" y="19.0" class="axis-label" text-anchor="end">100.0%</text><line x1="46" y1="90.0" x2="476" y2="90.0" class="baseline" /><text x="62" y="83.0" class="axis-label" text-anchor="start">ランダム水準 50%</text><path d="M 46.0,90.0 L 261.0,149.2 L 476.0,60.4" fill="none" stroke="var(--series-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /><circle cx="46.0" cy="90.0" r="4" fill="var(--series-1)" stroke="var(--surface-1)" stroke-width="2" data-x="46.0" data-date="2026-09-11" data-value="50.0%"><title>2026-09-11: 50.0%</title></circle><circle cx="261.0" cy="149.2" r="4" fill="var(--series-1)" stroke="var(--surface-1)" stroke-width="2" data-x="261.0" data-date="2026-09-14" data-value="10.0%"><title>2026-09-14: 10.0%</title></circle><circle cx="476.0" cy="60.4" r="4" fill="var(--series-1)" stroke="var(--surface-1)" stroke-width="2" data-x="476.0" data-date="2026-09-15" data-value="70.0%"><title>2026-09-15: 70.0%</title></circle><text x="484.0" y="64.4" class="end-label">70.0%</text><text x="46.0" y="184" class="axis-label" text-anchor="middle">09-11</text><text x="261.0" y="184" class="axis-label" text-anchor="middle">09-14</text><text x="476.0" y="184" class="axis-label" text-anchor="middle">09-15</text><line class="crosshair" id="jp-hit-cursor" x1="0" y1="16" x2="0" y2="164" /></svg><div class="chart-tooltip" id="jp-hit-tip" hidden></div><script type="application/json" id="jp-hit-data">{"xs": [46.0, 261.0, 476.0], "labels": ["2026-09-11: 50.0%", "2026-09-14: 10.0%", "2026-09-15: 70.0%"]}</script></div><div class="chart-card"><h4>超過リターンの推移(対ベンチマーク)</h4><svg class="linechart" data-chart-id="jp-excess" viewBox="0 0 520 190" width="100%" height="190" role="img" aria-label="推移グラフ"><line x1="46" y1="164.0" x2="476" y2="164.0" class="gridline" /><text x="40" y="167.0" class="axis-label" text-anchor="end">-0.5%</text><line x1="46" y1="90.0" x2="476" y2="90.0" class="gridline" /><text x="40" y="93.0" class="axis-label" text-anchor="end">-0.1%</text><line x1="46" y1="16.0" x2="476" y2="16.0" class="gridline" /><text x="40" y="19.0" class="axis-label" text-anchor="end">0.3%</text><line x1="46" y1="74.6" x2="476" y2="74.6" class="baseline" /><text x="62" y="67.6" class="axis-label" text-anchor="start">ベンチマーク並み 0%</text><path d="M 46.0,79.7 L 261.0,142.9 L 476.0,37.1" fill="none" stroke="var(--series-2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /><circle cx="46.0" cy="79.7" r="4" fill="var(--series-2)" stroke="var(--surface-1)" stroke-width="2" data-x="46.0" data-date="2026-09-11" data-value="-0.0%"><title>2026-09-11: -0.0%</title></circle><circle cx="261.0" cy="142.9" r="4" fill="var(--series-2)" stroke="var(--surface-1)" stroke-width="2" data-x="261.0" data-date="2026-09-14" data-value="-0.4%"><title>2026-09-14: -0.4%</title></circle><circle cx="476.0" cy="37.1" r="4" fill="var(--series-2)" stroke="var(--surface-1)" stroke-width="2" data-x="476.0" data-date="2026-09-15" data-value="0.2%"><title>2026-09-15: 0.2%</title></circle><text x="484.0" y="41.1" class="end-label">0.2%</text><text x="46.0" y="184" class="axis-label" text-anchor="middle">09-11</text><text x="261.0" y="184" class="axis-label" text-anchor="middle">09-14</text><text x="476.0" y="184" class="axis-label" text-anchor="middle">09-15</text><line class="crosshair" id="jp-excess-cursor" x1="0" y1="16" x2="0" y2="164" /></svg><div class="chart-tooltip" id="jp-excess-tip" hidden></div><script type="application/json" id="jp-excess-data">{"xs": [46.0, 261.0, 476.0], "labels": ["2026-09-11: -0.0%", "2026-09-14: -0.4%", "2026-09-15: 0.2%"]}</script></div></div>
+      <div class="tables-grid">
+        <div class="table-card">
+          <h4>直近のTOP10(基準日: 2026-09-15)</h4>
+          <div class="table-scroll"><table><thead><tr><th>順位</th><th>ティッカー</th><th>銘柄名</th><th>スコア</th><th>基準終値</th><th>5日騰落率</th></tr></thead><tbody><tr><td>1</td><td>5301.T</td><td>東海カーボン</td><td class='num'>8.368</td><td class='num'>1977.00</td><td class='num'>9.1%</td></tr><tr><td>2</td><td>4704.T</td><td>トレンドマイクロ</td><td class='num'>7.890</td><td class='num'>6332.00</td><td class='num'>9.2%</td></tr><tr><td>3</td><td>9984.T</td><td>ソフトバンクグループ</td><td class='num'>7.779</td><td class='num'>6279.00</td><td class='num'>-4.2%</td></tr><tr><td>4</td><td>6920.T</td><td>レーザーテック</td><td class='num'>6.663</td><td class='num'>35590.00</td><td class='num'>1.9%</td></tr><tr><td>5</td><td>6753.T</td><td>シャープ</td><td class='num'>6.306</td><td class='num'>670.80</td><td class='num'>7.2%</td></tr><tr><td>6</td><td>5019.T</td><td>出光興産</td><td class='num'>5.941</td><td class='num'>1601.00</td><td class='num'>3.8%</td></tr><tr><td>7</td><td>6702.T</td><td>富士通</td><td class='num'>5.202</td><td class='num'>3945.00</td><td class='num'>4.5%</td></tr><tr><td>8</td><td>8001.T</td><td>伊藤忠商事</td><td class='num'>4.918</td><td class='num'>2321.00</td><td class='num'>1.9%</td></tr><tr><td>9</td><td>2531.T</td><td>宝ホールディングス</td><td class='num'>4.531</td><td class='num'>2450.00</td><td class='num'>0.6%</td></tr><tr><td>10</td><td>9434.T</td><td>ソフトバンク</td><td class='num'>4.370</td><td class='num'>250.60</td><td class='num'>4.0%</td></tr></tbody></table></div>
+        </div>
+        <div class="table-card">
+          <h4>直近の答え合わせ(基準日: 2026-09-15)</h4>
+          <div class="table-scroll"><table><thead><tr><th>順位</th><th>ティッカー</th><th>銘柄名</th><th>前日終値</th><th>当日終値</th><th>差額</th><th>騰落率</th><th>結果</th></tr></thead><tbody><tr><td>1</td><td>5301.T</td><td>東海カーボン</td><td class='num'>1,977.00</td><td class='num'>2,056.50</td><td class='num delta-good'>+79.50</td><td class='num'>4.0%</td><td><span class="badge badge-good">○ 的中</span></td></tr><tr><td>2</td><td>4704.T</td><td>トレンドマイクロ</td><td class='num'>6,332.00</td><td class='num'>6,391.00</td><td class='num delta-good'>+59.00</td><td class='num'>0.9%</td><td><span class="badge badge-good">○ 的中</span></td></tr><tr><td>3</td><td>9984.T</td><td>ソフトバンクグループ</td><td class='num'>6,279.00</td><td class='num'>6,183.00</td><td class='num delta-bad'>-96.00</td><td class='num'>-1.5%</td><td><span class="badge badge-bad">× 不的中</span></td></tr><tr><td>4</td><td>6920.T</td><td>レーザーテック</td><td class='num'>35,590.00</td><td class='num'>35,750.00</td><td class='num delta-good'>+160.00</td><td class='num'>0.4%</td><td><span class="badge badge-good">○ 的中</span></td></tr><tr><td>5</td><td>6753.T</td><td>シャープ</td><td class='num'>670.80</td><td class='num'>677.90</td><td class='num delta-good'>+7.10</td><td class='num'>1.1%</td><td><span class="badge badge-good">○ 的中</span></td></tr><tr><td>6</td><td>5019.T</td><td>出光興産</td><td class='num'>1,601.00</td><td class='num'>1,670.00</td><td class='num delta-good'>+69.00</td><td class='num'>4.3%</td><td><span class="badge badge-good">○ 的中</span></td></tr><tr><td>7</td><td>6702.T</td><td>富士通</td><td class='num'>3,945.00</td><td class='num'>3,934.00</td><td class='num delta-bad'>-11.00</td><td class='num'>-0.3%</td><td><span class="badge badge-bad">× 不的中</span></td></tr><tr><td>8</td><td>8001.T</td><td>伊藤忠商事</td><td class='num'>2,321.00</td><td class='num'>2,322.50</td><td class='num delta-good'>+1.50</td><td class='num'>0.1%</td><td><span class="badge badge-good">○ 的中</span></td></tr><tr><td>9</td><td>2531.T</td><td>宝ホールディングス</td><td class='num'>2,450.00</td><td class='num'>2,465.50</td><td class='num delta-good'>+15.50</td><td class='num'>0.6%</td><td><span class="badge badge-good">○ 的中</span></td></tr><tr><td>10</td><td>9434.T</td><td>ソフトバンク</td><td class='num'>250.60</td><td class='num'>248.80</td><td class='num delta-bad'>-1.80</td><td class='num'>-0.7%</td><td><span class="badge badge-bad">× 不的中</span></td></tr></tbody></table></div>
+        </div>
+      </div>
+      <div class="miss-section">
+        <h4>外れた銘柄の要因(参考)</h4>
+        <div class='miss-diagnosis'><div class='miss-item'><div class='miss-head'>9984.T ソフトバンクグループ <span class='miss-sector'>(Communication Services)</span><span class='miss-return'>(-1.5%)</span></div><ul class='miss-reasons'><li>ベンチマークと比べて大きく下回っており、決算発表やニュースなど、この銘柄固有のマイナス要因が働いた可能性があります(価格データだけでは特定できません)。</li><li>この日のドル円は154.38→154.96(+0.4%)と動いており、輸出関連銘柄などへの影響が考えられます。</li></ul><div class='miss-news-label'>参考ニュース</div><ul class='miss-news'><li><a href='https://www.wsj.com/tech/ai/openai-considers-pre-ipo-funding-round-at-more-than-1-2-trillion-valuation-54555295?siteid=yhoof2&amp;yptr=yahoo' target='_blank' rel='noopener'>OpenAI Considers Pre-IPO Funding Round at More Than $1.2 Trillion Valuation</a> <span class='news-date'>2026-09-16 02:35</span></li><li><a href='https://www.wsj.com/finance/stocks/nikkei-slips-0-2-dragged-by-chip-related-stocks-7a92f368?siteid=yhoof2&amp;yptr=yahoo' target='_blank' rel='noopener'>Nikkei Slips 0.2%, Dragged by Chip-Related Stocks</a> <span class='news-date'>2026-09-16 00:37</span></li><li><a href='https://finance.yahoo.com/technology/ai/articles/former-mossad-chief-yossi-cohen-155449992.html' target='_blank' rel='noopener'>Former Mossad Chief, Yossi Cohen, Strategic Advisor to SoftBank, Joins Quantum X Labs as President of Scientific Advisory Board</a> <span class='news-date'>2026-09-15 15:54</span></li></ul></div><div class='miss-item'><div class='miss-head'>6702.T 富士通<span class='miss-return'>(-0.3%)</span></div><ul class='miss-reasons'><li>この日のドル円は154.38→154.96(+0.4%)と動いており、輸出関連銘柄などへの影響が考えられます。</li></ul><div class='miss-news-label'>参考ニュース</div><ul class='miss-news'><li><a href='https://finance.yahoo.com/technology/ai/articles/palantir-apos-aipcon-highlights-data-155654907.html' target='_blank' rel='noopener'>Palantir&#x27;s AIPCon Highlights Data Sovereignty Demand, Ecosystem Adoption, Oppenheimer Says</a> <span class='news-date'>2026-09-14 15:56</span></li><li><a href='https://finance.yahoo.com/markets/world-indices/articles/ai-concerns-oil-bills-blunt-104604513.html' target='_blank' rel='noopener'>AI Concerns, Oil Bills Blunt Asian Stock Markets</a> <span class='news-date'>2026-09-14 10:46</span></li></ul></div><div class='miss-item'><div class='miss-head'>9434.T ソフトバンク <span class='miss-sector'>(Communication Services)</span><span class='miss-return'>(-0.7%)</span></div><ul class='miss-reasons'><li>同じ業種の他銘柄も平均-1.5%下落しており、業種全体の地合いが影響した可能性があります。</li><li>選定時点のRSIが72前後と「買われすぎ」の水準にあり、その反動(利益確定売り)で下落した可能性があります。</li><li>この日のドル円は154.38→154.96(+0.4%)と動いており、輸出関連銘柄などへの影響が考えられます。</li></ul></div></div><p class="empty">※ 決算発表フラグ・ニュース見出し・セクター内比較・マクロ指標(ドル円/VIX)・価格/出来高データから読み取れる範囲の参考コメントです。断定的な原因特定ではありません。</p>
+      </div>
+    </section>
+    
+    <section class="market-section">
+      <h2>米国株</h2>
+      <div class="stat-grid"><div class="stat-tile"><div class="stat-label">通算的中率</div><div class="stat-value">45.6%</div><div class="stat-delta delta-neutral"> 直近10回 45.6%</div></div><div class="stat-tile"><div class="stat-label">通算 平均超過リターン(対ベンチマーク)</div><div class="stat-value">-0.6%</div></div><div class="stat-tile"><div class="stat-label">現在の予測手法</div><div class="stat-value">ルールベース</div><div class="stat-delta delta-neutral"> コールドスタート中</div></div><div class="stat-tile"><div class="stat-label">答え合わせ済みの回数</div><div class="stat-value">2</div></div></div>
+      <div class="chart-grid"><div class="chart-card"><h4>的中率の推移</h4><svg class="linechart" data-chart-id="us-hit" viewBox="0 0 520 190" width="100%" height="190" role="img" aria-label="推移グラフ"><line x1="46" y1="164.0" x2="476" y2="164.0" class="gridline" /><text x="40" y="167.0" class="axis-label" text-anchor="end">0.0%</text><line x1="46" y1="90.0" x2="476" y2="90.0" class="gridline" /><text x="40" y="93.0" class="axis-label" text-anchor="end">50.0%</text><line x1="46" y1="16.0" x2="476" y2="16.0" class="gridline" /><text x="40" y="19.0" class="axis-label" text-anchor="end">100.0%</text><line x1="46" y1="90.0" x2="476" y2="90.0" class="baseline" /><text x="62" y="83.0" class="axis-label" text-anchor="start">ランダム水準 50%</text><path d="M 46.0,147.6 L 476.0,45.6" fill="none" stroke="var(--series-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /><circle cx="46.0" cy="147.6" r="4" fill="var(--series-1)" stroke="var(--surface-1)" stroke-width="2" data-x="46.0" data-date="2026-09-11" data-value="11.1%"><title>2026-09-11: 11.1%</title></circle><circle cx="476.0" cy="45.6" r="4" fill="var(--series-1)" stroke="var(--surface-1)" stroke-width="2" data-x="476.0" data-date="2026-09-14" data-value="80.0%"><title>2026-09-14: 80.0%</title></circle><text x="484.0" y="49.6" class="end-label">80.0%</text><text x="46.0" y="184" class="axis-label" text-anchor="middle">09-11</text><text x="476.0" y="184" class="axis-label" text-anchor="middle">09-14</text><line class="crosshair" id="us-hit-cursor" x1="0" y1="16" x2="0" y2="164" /></svg><div class="chart-tooltip" id="us-hit-tip" hidden></div><script type="application/json" id="us-hit-data">{"xs": [46.0, 476.0], "labels": ["2026-09-11: 11.1%", "2026-09-14: 80.0%"]}</script></div><div class="chart-card"><h4>超過リターンの推移(対ベンチマーク)</h4><svg class="linechart" data-chart-id="us-excess" viewBox="0 0 520 190" width="100%" height="190" role="img" aria-label="推移グラフ"><line x1="46" y1="164.0" x2="476" y2="164.0" class="gridline" /><text x="40" y="167.0" class="axis-label" text-anchor="end">-6.1%</text><line x1="46" y1="90.0" x2="476" y2="90.0" class="gridline" /><text x="40" y="93.0" class="axis-label" text-anchor="end">-0.6%</text><line x1="46" y1="16.0" x2="476" y2="16.0" class="gridline" /><text x="40" y="19.0" class="axis-label" text-anchor="end">4.9%</text><line x1="46" y1="81.7" x2="476" y2="81.7" class="baseline" /><text x="62" y="74.7" class="axis-label" text-anchor="start">ベンチマーク並み 0%</text><path d="M 46.0,142.9 L 476.0,37.1" fill="none" stroke="var(--series-2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /><circle cx="46.0" cy="142.9" r="4" fill="var(--series-2)" stroke="var(--surface-1)" stroke-width="2" data-x="46.0" data-date="2026-09-11" data-value="-4.5%"><title>2026-09-11: -4.5%</title></circle><circle cx="476.0" cy="37.1" r="4" fill="var(--series-2)" stroke="var(--surface-1)" stroke-width="2" data-x="476.0" data-date="2026-09-14" data-value="3.3%"><title>2026-09-14: 3.3%</title></circle><text x="484.0" y="41.1" class="end-label">3.3%</text><text x="46.0" y="184" class="axis-label" text-anchor="middle">09-11</text><text x="476.0" y="184" class="axis-label" text-anchor="middle">09-14</text><line class="crosshair" id="us-excess-cursor" x1="0" y1="16" x2="0" y2="164" /></svg><div class="chart-tooltip" id="us-excess-tip" hidden></div><script type="application/json" id="us-excess-data">{"xs": [46.0, 476.0], "labels": ["2026-09-11: -4.5%", "2026-09-14: 3.3%"]}</script></div></div>
+      <div class="tables-grid">
+        <div class="table-card">
+          <h4>直近のTOP10(基準日: 2026-09-15)</h4>
+          <div class="table-scroll"><table><thead><tr><th>順位</th><th>ティッカー</th><th>銘柄名</th><th>スコア</th><th>基準終値</th><th>5日騰落率</th></tr></thead><tbody><tr><td>1</td><td>SWKS</td><td>Skyworks Solutions</td><td class='num'>13.422</td><td class='num'>90.00</td><td class='num'>19.4%</td></tr><tr><td>2</td><td>META</td><td>Meta Platforms</td><td class='num'>9.479</td><td class='num'>670.24</td><td class='num'>9.3%</td></tr><tr><td>3</td><td>SYY</td><td>Sysco</td><td class='num'>8.189</td><td class='num'>79.60</td><td class='num'>-0.3%</td></tr><tr><td>4</td><td>DELL</td><td>Dell Technologies</td><td class='num'>7.264</td><td class='num'>543.51</td><td class='num'>1.8%</td></tr><tr><td>5</td><td>RVTY</td><td>Revvity</td><td class='num'>7.073</td><td class='num'>140.19</td><td class='num'>10.3%</td></tr><tr><td>6</td><td>CRWD</td><td>CrowdStrike</td><td class='num'>6.484</td><td class='num'>242.49</td><td class='num'>15.5%</td></tr><tr><td>7</td><td>WST</td><td>West Pharmaceutical Services</td><td class='num'>6.262</td><td class='num'>365.00</td><td class='num'>8.1%</td></tr><tr><td>8</td><td>QCOM</td><td>Qualcomm</td><td class='num'>6.224</td><td class='num'>187.80</td><td class='num'>7.9%</td></tr><tr><td>9</td><td>APP</td><td>AppLovin</td><td class='num'>5.987</td><td class='num'>331.46</td><td class='num'>6.2%</td></tr><tr><td>10</td><td>FFIV</td><td>F5, Inc.</td><td class='num'>5.884</td><td class='num'>430.88</td><td class='num'>10.6%</td></tr></tbody></table></div>
+        </div>
+        <div class="table-card">
+          <h4>直近の答え合わせ(基準日: 2026-09-14)</h4>
+          <div class="table-scroll"><table><thead><tr><th>順位</th><th>ティッカー</th><th>銘柄名</th><th>前日終値</th><th>当日終値</th><th>差額</th><th>騰落率</th><th>結果</th></tr></thead><tbody><tr><td>1</td><td>META</td><td>Meta Platforms</td><td class='num'>665.60</td><td class='num'>670.24</td><td class='num delta-good'>+4.64</td><td class='num'>0.7%</td><td><span class="badge badge-good">○ 的中</span></td></tr><tr><td>2</td><td>SWKS</td><td>Skyworks Solutions</td><td class='num'>79.26</td><td class='num'>90.00</td><td class='num delta-good'>+10.74</td><td class='num'>13.6%</td><td><span class="badge badge-good">○ 的中</span></td></tr><tr><td>3</td><td>CRWD</td><td>CrowdStrike</td><td class='num'>235.38</td><td class='num'>242.49</td><td class='num delta-good'>+7.11</td><td class='num'>3.0%</td><td><span class="badge badge-good">○ 的中</span></td></tr><tr><td>4</td><td>VLO</td><td>Valero Energy</td><td class='num'>382.95</td><td class='num'>397.04</td><td class='num delta-good'>+14.09</td><td class='num'>3.7%</td><td><span class="badge badge-good">○ 的中</span></td></tr><tr><td>5</td><td>DELL</td><td>Dell Technologies</td><td class='num'>534.28</td><td class='num'>543.51</td><td class='num delta-good'>+9.23</td><td class='num'>1.7%</td><td><span class="badge badge-good">○ 的中</span></td></tr><tr><td>6</td><td>QCOM</td><td>Qualcomm</td><td class='num'>180.15</td><td class='num'>187.80</td><td class='num delta-good'>+7.65</td><td class='num'>4.2%</td><td><span class="badge badge-good">○ 的中</span></td></tr><tr><td>7</td><td>HPQ</td><td>HP Inc.</td><td class='num'>34.02</td><td class='num'>33.82</td><td class='num delta-bad'>-0.20</td><td class='num'>-0.6%</td><td><span class="badge badge-bad">× 不的中</span></td></tr><tr><td>8</td><td>BBY</td><td>Best Buy</td><td class='num'>94.83</td><td class='num'>93.24</td><td class='num delta-bad'>-1.59</td><td class='num'>-1.7%</td><td><span class="badge badge-bad">× 不的中</span></td></tr><tr><td>9</td><td>PANW</td><td>Palo Alto Networks</td><td class='num'>373.94</td><td class='num'>375.09</td><td class='num delta-good'>+1.15</td><td class='num'>0.3%</td><td><span class="badge badge-good">○ 的中</span></td></tr><tr><td>10</td><td>MPC</td><td>Marathon Petroleum</td><td class='num'>396.45</td><td class='num'>410.84</td><td class='num delta-good'>+14.39</td><td class='num'>3.6%</td><td><span class="badge badge-good">○ 的中</span></td></tr></tbody></table></div>
+        </div>
+      </div>
+      <div class="miss-section">
+        <h4>外れた銘柄の要因(参考)</h4>
+        <div class='miss-diagnosis'><div class='miss-item'><div class='miss-head'>HPQ HP Inc. <span class='miss-sector'>(Technology)</span><span class='miss-return'>(-0.6%)</span></div><ul class='miss-reasons'><li>同じ業種の他銘柄(平均5.6%)より大きく下落しており、業種全体の動きというよりこの銘柄固有の要因が大きいと考えられます。</li></ul><div class='miss-news-label'>参考ニュース</div><ul class='miss-news'><li><a href='https://finance.yahoo.com/markets/stocks/articles/lenovo-vs-hp-pc-giant-164200304.html' target='_blank' rel='noopener'>Lenovo vs. HP: Which PC Giant Stock Has Better Prospects?</a> <span class='news-date'>2026-09-15 16:42</span></li><li><a href='https://finance.yahoo.com/markets/options/articles/still-want-dell-ai-orders-150146466.html' target='_blank' rel='noopener'>Would You Still Want Dell If The AI Orders Slowed?</a> <span class='news-date'>2026-09-15 15:01</span></li><li><a href='https://finance.yahoo.com/markets/stocks/articles/buy-dell-technologies-stock-ai-141340384.html' target='_blank' rel='noopener'>Should You Buy Dell Technologies Stock For All That AI Revenue?</a> <span class='news-date'>2026-09-14 14:13</span></li></ul></div><div class='miss-item'><div class='miss-head'>BBY Best Buy<span class='miss-return'>(-1.7%)</span></div><ul class='miss-reasons'><li>決算発表・ニュース見出し・セクター比較・マクロ指標・momentum/出来高/RSIのいずれからも、特に目立った予兆は見られませんでした。このツールが参照していない要因が影響した可能性があります。</li></ul><div class='miss-news-label'>参考ニュース</div><ul class='miss-news'><li><a href='https://finance.yahoo.com/markets/stocks/articles/lovesac-love-target-cut-canaccord-165004527.html' target='_blank' rel='noopener'>Lovesac (LOVE) Target Cut by Canaccord, Analysts See 40% Upside</a> <span class='news-date'>2026-09-15 16:50</span></li><li><a href='https://finance.yahoo.com/markets/stocks/articles/3-p-500-stocks-fall-170730337.html' target='_blank' rel='noopener'>3 S&amp;P 500 Stocks That Fall Short</a> <span class='news-date'>2026-09-14 17:07</span></li></ul></div></div><p class="empty">※ 決算発表フラグ・ニュース見出し・セクター内比較・マクロ指標(ドル円/VIX)・価格/出来高データから読み取れる範囲の参考コメントです。断定的な原因特定ではありません。</p>
+      </div>
+    </section>
+    
+  <footer>predict / evaluate を実行するたびに <code>python main.py dashboard</code> で再生成してください。</footer>
+</div>
+<script>
+document.querySelectorAll('.linechart').forEach(function (svg) {
+  var id = svg.getAttribute('data-chart-id');
+  var dataEl = document.getElementById(id + '-data');
+  var cursor = document.getElementById(id + '-cursor');
+  var tip = document.getElementById(id + '-tip');
+  if (!dataEl || !cursor || !tip) return;
+  var meta = JSON.parse(dataEl.textContent);
+  var wrap = svg.closest('.chart-card');
+  function nearestIndex(px) {
+    var best = 0, bestDist = Infinity;
+    meta.xs.forEach(function (x, i) {
+      var d = Math.abs(x - px);
+      if (d < bestDist) { bestDist = d; best = i; }
+    });
+    return best;
+  }
+  svg.addEventListener('mousemove', function (evt) {
+    var rect = svg.getBoundingClientRect();
+    var viewBox = svg.viewBox.baseVal;
+    var scale = viewBox.width / rect.width;
+    var px = (evt.clientX - rect.left) * scale;
+    var idx = nearestIndex(px);
+    var x = meta.xs[idx];
+    cursor.setAttribute('x1', x);
+    cursor.setAttribute('x2', x);
+    cursor.style.opacity = 1;
+    tip.hidden = false;
+    tip.textContent = meta.labels[idx];
+  });
+  svg.addEventListener('mouseleave', function () {
+    cursor.style.opacity = 0;
+    tip.hidden = true;
+  });
+});
+</script>
+</body>
+</html>
