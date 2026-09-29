@@ -134,7 +134,7 @@ footer { color: var(--text-muted); font-size: 0.78rem; margin-top: 8px; text-ali
 <div class="wrap">
   <header>
     <h1>Stock Predictor Dashboard</h1>
-    <p>生成日時: 2026-09-29 20:00 ／ 投資助言ではありません。公開の値動きデータのみに基づく参考情報です。</p>
+    <p>生成日時: 2026-09-29 20:05 ／ 投資助言ではありません。公開の値動きデータのみに基づく参考情報です。</p>
   </header>
   <div class="tab-nav"><button class="tab-btn active" type="button" data-tab="stock">株式</button><button class="tab-btn" type="button" data-tab="fx">FX</button></div><div class="tab-panel" data-tab-panel="stock">
     <section class="market-section">
@@ -164,12 +164,12 @@ footer { color: var(--text-muted); font-size: 0.78rem; margin-top: 8px; text-ali
     <div class="horizon-block">
       <h3>1ヶ月予測(参考・実験的)</h3>
       <p class="horizon-note">直近の値動きデータのみに基づく参考情報で、投資助言ではありません。翌営業日予測よりデータの蓄積が新しく、的中率の評価にはより長い期間が必要です。</p>
-      <div class="stat-grid"><div class="stat-tile"><div class="stat-label">通算的中率</div><div class="stat-value">データなし</div></div><div class="stat-tile"><div class="stat-label">通算 平均超過リターン(対ベンチマーク)</div><div class="stat-value">データなし</div></div><div class="stat-tile"><div class="stat-label">現在の予測手法</div><div class="stat-value">-</div></div><div class="stat-tile"><div class="stat-label">答え合わせ済みの回数</div><div class="stat-value">0</div></div></div>
+      <div class="stat-grid"><div class="stat-tile"><div class="stat-label">通算的中率</div><div class="stat-value">データなし</div></div><div class="stat-tile"><div class="stat-label">通算 平均超過リターン(対ベンチマーク)</div><div class="stat-value">データなし</div></div><div class="stat-tile"><div class="stat-label">現在の予測手法</div><div class="stat-value">ルールベース</div><div class="stat-delta delta-neutral"> コールドスタート中</div></div><div class="stat-tile"><div class="stat-label">答え合わせ済みの回数</div><div class="stat-value">0</div></div></div>
       <p class="empty">2回以上答え合わせが貯まるとここに精度推移グラフが出ます。</p>
       <div class="tables-grid">
         <div class="table-card">
-          <h4>直近のTOP(基準日: -)</h4>
-          <p class="empty">まだpredictコマンドが実行されていません。</p>
+          <h4>直近のTOP10(基準日: 2026-09-29)</h4>
+          <div class="table-scroll"><table><thead><tr><th>順位</th><th>ティッカー</th><th>銘柄名</th><th>スコア</th><th>基準終値</th><th>5日騰落率</th></tr></thead><tbody><tr><td>1</td><td>6920.T</td><td>レーザーテック</td><td class='num'>13.833</td><td class='num'>41000.00</td><td class='num'>14.0%</td></tr><tr><td>2</td><td>5301.T</td><td>東海カーボン</td><td class='num'>10.535</td><td class='num'>2337.50</td><td class='num'>12.4%</td></tr><tr><td>3</td><td>8766.T</td><td>東京海上ホールディングス</td><td class='num'>9.797</td><td class='num'>523.20</td><td class='num'>22.4%</td></tr><tr><td>4</td><td>7735.T</td><td>SCREENホールディングス</td><td class='num'>7.993</td><td class='num'>14530.00</td><td class='num'>18.4%</td></tr><tr><td>5</td><td>6273.T</td><td>SMC</td><td class='num'>6.608</td><td class='num'>70570.00</td><td class='num'>6.8%</td></tr><tr><td>6</td><td>8035.T</td><td>東京エレクトロン</td><td class='num'>5.792</td><td class='num'>11505.00</td><td class='num'>16.8%</td></tr><tr><td>7</td><td>2531.T</td><td>宝ホールディングス</td><td class='num'>4.733</td><td class='num'>2620.50</td><td class='num'>3.7%</td></tr><tr><td>8</td><td>4704.T</td><td>トレンドマイクロ</td><td class='num'>4.581</td><td class='num'>6530.00</td><td class='num'>1.2%</td></tr><tr><td>9</td><td>6981.T</td><td>村田製作所</td><td class='num'>4.506</td><td class='num'>8089.00</td><td class='num'>9.3%</td></tr><tr><td>10</td><td>1812.T</td><td>鹿島建設</td><td class='num'>4.071</td><td class='num'>4847.00</td><td class='num'>-2.9%</td></tr></tbody></table></div>
         </div>
         <div class="table-card">
           <h4>直近の答え合わせ(基準日: -)</h4>
